@@ -1,6 +1,6 @@
-use libintent::dispatcher::Dispatcher;
+use libintent::types::{IntentInput, IntentResult, ExecutionStatus, CoreError};
 use libintent::intent::Intent;
-use libintent::types::{IntentInput, IntentOutput, Executiontatus};
+use libintent::dispatcher::Dispatcher;
 
 struct HelloWorld;
 
@@ -8,8 +8,8 @@ impl Intent for HelloWorld {
     fn name(&self) -> &'static str { "hello" }
     fn path(&self) -> &'static str { "core.hello_world" }
     fn description(&self) -> &'static str { "Returns a friendly greeting." }
-    fn execute(&self, _input: IntentInput) -> IntentOutput {
-        IntentOutput { status: Executiontatus::Ok, result: Some("Hello, world!".to_string()) }
+    fn execute(&self, _input: IntentInput) -> IntentResult {
+        IntentResult { status: ExecutionStatus::Ok, result: Some("Hello, world!".to_string()) }
     }
 }
 
@@ -19,20 +19,17 @@ impl Intent for ErrorIntent {
     fn name(&self) -> &'static str { "error" }
     fn path(&self) -> &'static str { "core.error" }
     fn description(&self) -> &'static str { "Always fails" }
-    fn execute(&self, _input: IntentInput) -> IntentOutput {
-        IntentOutput { status: Executiontatus::Error, result: Some("simulated failure".to_string()) }
+    fn execute(&self, _input: IntentInput) -> IntentResult {
+        IntentResult { status: ExecutionStatus::Error, result: Some("simulated failure".to_string()) }
     }
 }
 
 #[test]
-fn dispatch_should_return_intent_output_with_an_error_if_intent_does_not_exist() {
+fn dispatch_should_return_error_if_intent_does_not_exist() {
     let input = IntentInput { data: None, args: vec![] };
     let dispatcher = Dispatcher::new();
     let result = dispatcher.dispatch("fake.intent", input);
-    let expected = IntentOutput {
-        status: Executiontatus::Error,
-        result: Some("Intent 'fake.intent' not found".to_string())
-    };
+    let expected = Err(CoreError::IntentNotFound { path: "fake.intent".to_string() });
 
     assert_eq!(result, expected);
 }
@@ -42,44 +39,53 @@ fn register_should_correctly_register_intent() {
     let input = IntentInput { data: None, args: vec![] };
     let mut dispatcher = Dispatcher::new();
 
-    dispatcher.register(Box::new(HelloWorld));
-    // since `intents` is private, verify registration by dispatching the path
+    dispatcher.register(Box::new(HelloWorld)).unwrap();
+    
     let result = dispatcher.dispatch("core.hello_world", input);
-    let expected = IntentOutput {
-        status: Executiontatus::Ok,
-        result: Some("Hello, world!".to_string())
-    };
+    let expected = Ok(IntentResult {
+        status: ExecutionStatus::Ok,
+        result: Some("Hello, world!".to_string()),
+    });
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn dispatch_should_return_the_intent_result() {
+fn register_should_return_error_when_intent_already_exists() {
+    let mut dispatcher = Dispatcher::new();
+    dispatcher.register(Box::new(HelloWorld)).unwrap();
+    let result = dispatcher.register(Box::new(HelloWorld));
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err(), "Intent 'core.hello_world' already registered");
+}
+
+#[test]
+fn dispatch_should_return_intent_result_ok() {
     let input = IntentInput { data: None, args: vec![] };
     let mut dispatcher = Dispatcher::new();
 
-    dispatcher.register(Box::new(HelloWorld));
+    dispatcher.register(Box::new(HelloWorld)).unwrap();
 
-    let expected = IntentOutput {
-        status: Executiontatus::Ok,
-        result: Some(String::from("Hello, world!"))
-    };
+    let expected = Ok(IntentResult {
+        status: ExecutionStatus::Ok,
+        result: Some("Hello, world!".to_string()),
+    });
     let result = dispatcher.dispatch("core.hello_world", input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn dispatch_should_return_error_when_intent_returns_error() {
+fn dispatch_should_return_intent_result_error_status() {
     let input = IntentInput { data: None, args: vec![] };
     let mut dispatcher = Dispatcher::new();
 
-    dispatcher.register(Box::new(ErrorIntent));
+    dispatcher.register(Box::new(ErrorIntent)).unwrap();
 
-    let expected = IntentOutput {
-        status: Executiontatus::Error,
-        result: Some(String::from("simulated failure"))
-    };
+    let expected = Ok(IntentResult {
+        status: ExecutionStatus::Error,
+        result: Some("simulated failure".to_string()),
+    });
     let result = dispatcher.dispatch("core.error", input);
 
     assert_eq!(result, expected);
