@@ -1,0 +1,4 @@
+- [X] lib's core types
+- [X] minimally functional dispatcher
+- the pilot intent (fs.read)
+- some initial formats (json, plain, source, etc.)
