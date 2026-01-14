@@ -55,6 +55,7 @@ fn register_should_return_error_when_intent_already_exists() {
     let mut dispatcher = Dispatcher::new();
     dispatcher.register(Box::new(HelloWorld)).unwrap();
     let result = dispatcher.register(Box::new(HelloWorld));
+    
     assert!(result.is_err());
     assert_eq!(result.unwrap_err(), "Intent 'core.hello_world' already registered");
 }

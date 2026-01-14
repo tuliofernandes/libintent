@@ -1,0 +1,12 @@
+# fs/list.intent.toml - DRAFT
+name = "list"
+alias = ["ls"]
+infra = "fs"
+version = "0.1"
+
+[args]
+path = { type = "string", required = false, default = "." }
+all  = { type = "bool", short = "a" }
+
+[capabilities]
+read_fs = true
