@@ -1,3 +1,4 @@
+use serde_json::json;
 use libintent::types::{IntentInput, IntentResult, ExecutionStatus, CoreError};
 use libintent::intent::Intent;
 use libintent::dispatcher::Dispatcher;
@@ -9,7 +10,11 @@ impl Intent for HelloWorld {
     fn path(&self) -> &'static str { "core.hello_world" }
     fn description(&self) -> &'static str { "Returns a friendly greeting." }
     fn execute(&self, _input: IntentInput) -> IntentResult {
-        IntentResult { status: ExecutionStatus::Ok, result: Some("Hello, world!".to_string()) }
+        IntentResult {
+            status: ExecutionStatus::Ok,
+            result: Some(json!("Hello, world!")),
+            error: None,
+        }
     }
 }
 
@@ -20,7 +25,11 @@ impl Intent for ErrorIntent {
     fn path(&self) -> &'static str { "core.error" }
     fn description(&self) -> &'static str { "Always fails" }
     fn execute(&self, _input: IntentInput) -> IntentResult {
-        IntentResult { status: ExecutionStatus::Error, result: Some("simulated failure".to_string()) }
+        IntentResult {
+            status: ExecutionStatus::Error,
+            result: None,
+            error: Some("simulated failure".to_string()),
+        }
     }
 }
 
@@ -44,7 +53,8 @@ fn register_should_correctly_register_intent() {
     let result = dispatcher.dispatch("core.hello_world", input);
     let expected = Ok(IntentResult {
         status: ExecutionStatus::Ok,
-        result: Some("Hello, world!".to_string()),
+        result: Some(json!("Hello, world!")),
+        error: None,
     });
 
     assert_eq!(result, expected);
@@ -69,7 +79,8 @@ fn dispatch_should_return_intent_result_ok() {
 
     let expected = Ok(IntentResult {
         status: ExecutionStatus::Ok,
-        result: Some("Hello, world!".to_string()),
+        result: Some(json!("Hello, world!")),
+        error: None,
     });
     let result = dispatcher.dispatch("core.hello_world", input);
 
@@ -85,7 +96,8 @@ fn dispatch_should_return_intent_result_error_status() {
 
     let expected = Ok(IntentResult {
         status: ExecutionStatus::Error,
-        result: Some("simulated failure".to_string()),
+        result: None,
+        error: Some("simulated failure".to_string()),
     });
     let result = dispatcher.dispatch("core.error", input);
 
