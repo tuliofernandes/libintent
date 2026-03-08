@@ -5,6 +5,6 @@
     - [X] functional core
     - [X] a format (json), implemented separatedly, outside the intents scope
 
-- [ ] the web.search intent
+- [X] the web.search intent
 
 - some initial formats (json, plain, source, etc.)
