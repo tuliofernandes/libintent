@@ -40,7 +40,7 @@ fn should_return_ok_with_markdown_for_simple_query_or_error_on_network_failure()
             let markdown_value = result
                 .result
                 .as_ref()
-                .and_then(|v| v.get("markdown"))
+                .and_then(|v| v.get("data"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
             assert!(!markdown_value.trim().is_empty());
@@ -121,7 +121,7 @@ fn manual_web_search_prints_markdown() {
             let markdown_value = result
                 .result
                 .as_ref()
-                .and_then(|v| v.get("markdown"))
+                .and_then(|v| v.get("data"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
             println!("Status: Ok");

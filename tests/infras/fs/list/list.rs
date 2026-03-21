@@ -50,8 +50,8 @@ fn should_return_ok_with_files_and_dirs_when_directory_exists() {
     assert_eq!(result.status, ExecutionStatus::Ok);
     assert!(result.error.is_none());
     let result_val = result.result.as_ref().unwrap();
-    let files = result_val["files"].as_array().unwrap();
-    let dirs = result_val["dirs"].as_array().unwrap();
+    let files = result_val["data"]["files"].as_array().unwrap();
+    let dirs = result_val["data"]["dirs"].as_array().unwrap();
     let file_names: Vec<&str> = files.iter().filter_map(|v| v.as_str()).collect();
     let dir_names: Vec<&str> = dirs.iter().filter_map(|v| v.as_str()).collect();
     assert!(file_names.contains(&"a.txt"));
@@ -61,8 +61,8 @@ fn should_return_ok_with_files_and_dirs_when_directory_exists() {
     let out = result.to_json();
     let parsed: serde_json::Value = serde_json::from_str(&out).unwrap();
     assert_eq!(parsed["status"], "Ok");
-    assert!(parsed["result"]["files"].is_array());
-    assert!(parsed["result"]["dirs"].is_array());
+    assert!(parsed["result"]["data"]["files"].is_array());
+    assert!(parsed["result"]["data"]["dirs"].is_array());
 
     println!("\n--- should_return_ok_with_files_and_dirs_when_directory_exists ---");
     println!("{}", serde_json::to_string_pretty(&parsed).unwrap());
@@ -84,8 +84,8 @@ fn should_return_ok_with_empty_arrays_for_empty_directory() {
     assert_eq!(result.status, ExecutionStatus::Ok);
     assert!(result.error.is_none());
     let result_val = result.result.as_ref().unwrap();
-    let files = result_val["files"].as_array().unwrap();
-    let dirs = result_val["dirs"].as_array().unwrap();
+    let files = result_val["data"]["files"].as_array().unwrap();
+    let dirs = result_val["data"]["dirs"].as_array().unwrap();
     assert!(files.is_empty());
     // Empty dir may still have . and .. on some platforms
     assert!(dirs.iter().all(|v| v.as_str().is_some()));

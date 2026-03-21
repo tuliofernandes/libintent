@@ -52,7 +52,7 @@ impl Intent for Search {
         match rt.block_on(run_search(&query)) {
             Ok(markdown) => IntentResult {
                 status: ExecutionStatus::Ok,
-                result: Some(json!({ "markdown": markdown })),
+                result: Some(json!({ "data": markdown })),
                 error: None,
             },
             Err(e) => IntentResult {

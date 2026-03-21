@@ -28,7 +28,7 @@ impl Intent for List {
                 dirs.sort();
                 IntentResult {
                     status: ExecutionStatus::Ok,
-                    result: Some(json!({ "files": files, "dirs": dirs })),
+                    result: Some(json!({ "data": { "files": files, "dirs": dirs } })),
                     error: None,
                 }
             }
