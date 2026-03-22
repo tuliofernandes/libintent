@@ -27,6 +27,16 @@ impl Intent for Search {
     }
 
     fn execute(&self, input: IntentInput) -> IntentResult {
+        let limit = match extract_pages(&input.args) {
+            Ok(n) => n.unwrap_or(RESULTS_LIMIT),
+            Err(msg) => {
+                return IntentResult {
+                    status: ExecutionStatus::Error,
+                    result: None,
+                    error: Some(msg),
+                }
+            }
+        };
         let query = match extract_query(input) {
             Ok(q) => q,
             Err(msg) => {
@@ -49,7 +59,7 @@ impl Intent for Search {
             }
         };
 
-        match rt.block_on(run_search(&query)) {
+        match rt.block_on(run_search(&query, limit)) {
             Ok(markdown) => IntentResult {
                 status: ExecutionStatus::Ok,
                 result: Some(json!({ "data": markdown })),
@@ -62,6 +72,19 @@ impl Intent for Search {
             },
         }
     }
+}
+
+fn extract_pages(args: &[String]) -> Result<Option<usize>, String> {
+    let Some(pos) = args.iter().position(|a| a == "--pages") else {
+        return Ok(None);
+    };
+    let value = args
+        .get(pos + 1)
+        .ok_or("--pages requires a numeric value")?;
+    let n = value
+        .parse::<usize>()
+        .map_err(|_| format!("--pages value must be a positive number, got '{}'", value))?;
+    Ok(Some(n))
 }
 
 fn extract_query(input: IntentInput) -> Result<String, String> {
@@ -82,7 +105,7 @@ fn extract_query(input: IntentInput) -> Result<String, String> {
     Err("Missing query for web.search intent".to_string())
 }
 
-pub fn parse_brave_results(body: &str) -> Vec<(String, String)> {
+pub fn parse_brave_results(body: &str, limit: usize) -> Vec<(String, String)> {
     let document = Html::parse_document(body);
     let selector = Selector::parse("a").unwrap();
     let mut seen = HashSet::new();
@@ -101,7 +124,7 @@ pub fn parse_brave_results(body: &str) -> Vec<(String, String)> {
     ];
 
     for element in document.select(&selector) {
-        if results.len() >= RESULTS_LIMIT {
+        if results.len() >= limit {
             break;
         }
 
@@ -257,7 +280,7 @@ async fn fetch_all_contents(
     Ok(results)
 }
 
-async fn run_search(query: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
+async fn run_search(query: &str, limit: usize) -> Result<String, Box<dyn Error + Send + Sync>> {
     let client = reqwest::Client::new();
     let url = format!(
         "https://search.brave.com/search?q={}",
@@ -271,7 +294,7 @@ async fn run_search(query: &str) -> Result<String, Box<dyn Error + Send + Sync>>
         .await?;
 
     let body = resp.text().await?;
-    let results = parse_brave_results(&body);
+    let results = parse_brave_results(&body, limit);
 
     let full_results = fetch_all_contents(&client, &results).await?;
 
@@ -288,3 +311,31 @@ async fn run_search(query: &str) -> Result<String, Box<dyn Error + Send + Sync>>
     Ok(markdown.trim().to_string())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::extract_pages;
+
+    #[test]
+    fn extract_pages_returns_value_when_flag_present() {
+        let args = vec!["--pages".to_string(), "10".to_string()];
+        assert_eq!(extract_pages(&args), Ok(Some(10)));
+    }
+
+    #[test]
+    fn extract_pages_returns_none_when_flag_absent() {
+        let args = vec!["--other".to_string(), "10".to_string()];
+        assert_eq!(extract_pages(&args), Ok(None));
+    }
+
+    #[test]
+    fn extract_pages_returns_err_when_value_is_not_a_number() {
+        let args = vec!["--pages".to_string(), "abc".to_string()];
+        assert!(extract_pages(&args).is_err());
+    }
+
+    #[test]
+    fn extract_pages_returns_err_when_flag_has_no_value() {
+        let args = vec!["--pages".to_string()];
+        assert!(extract_pages(&args).is_err());
+    }
+}

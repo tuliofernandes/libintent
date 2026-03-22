@@ -8,3 +8,15 @@
 - [X] the web.search intent
 
 - some initial formats (json, plain, source, etc.)
+
+## Tech Debt
+
+- [ ] Lock down infra visibility — make `pub(crate) mod infras` in `lib.rs` so `List`, `Search`,
+      and all infra structs are inaccessible outside the crate.
+      Blocked by: `tests/infras/fs/list/list.rs` and `tests/infras/web/search/search.rs`
+      calling intent structs directly via `List.execute()` / `Search.execute()`.
+      Fix: migrate those tests to go through `Dispatcher::with_defaults()` + `dispatch()`.
+
+- [ ] Hide internal helpers `parse_brave_results` and `extract_page_text` in `search.rs`
+      (remove `pub`). Blocked by direct calls in `tests/infras/web/search/search.rs`.
+      Fix: once tests are migrated to dispatch-based assertions, drop `pub` from both functions.

@@ -54,6 +54,37 @@ fn should_return_ok_with_markdown_for_simple_query_or_error_on_network_failure()
 }
 
 #[test]
+fn parse_brave_results_respects_limit() {
+    let html = r##"
+        <html><body>
+            <a href="https://site1.com/article">Site One</a>
+            <a href="https://site2.com/article">Site Two</a>
+            <a href="https://site3.com/article">Site Three</a>
+            <a href="https://site4.com/article">Site Four</a>
+            <a href="https://site5.com/article">Site Five</a>
+        </body></html>
+    "##;
+
+    let results = parse_brave_results(html, 2);
+
+    assert_eq!(results.len(), 2);
+}
+
+#[test]
+fn parse_brave_results_returns_all_when_limit_exceeds_available() {
+    let html = r##"
+        <html><body>
+            <a href="https://site1.com/article">Site One</a>
+            <a href="https://site2.com/article">Site Two</a>
+        </body></html>
+    "##;
+
+    let results = parse_brave_results(html, 10);
+
+    assert_eq!(results.len(), 2);
+}
+
+#[test]
 fn parse_brave_results_extracts_unique_http_links() {
     let html = r##"
         <html>
@@ -66,7 +97,7 @@ fn parse_brave_results_extracts_unique_http_links() {
         </html>
     "##;
 
-    let results = parse_brave_results(html);
+    let results = parse_brave_results(html, 5);
 
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].0, "First result");
