@@ -28,7 +28,7 @@ Note: each new intent added to libintent must include its own `.scd` file in
 `man/man1/`; the octopus packaging step picks them all up automatically with a glob.
 
 ## Tech Debt
-
+- [ ] Implement a generic HTTP client inside the web infra, in order to decouple request details from the intents.
 - [ ] Lock down infra visibility — make `pub(crate) mod infras` in `lib.rs` so `List`, `Search`,
       and all infra structs are inaccessible outside the crate.
       Blocked by: `tests/infras/fs/list/list.rs` and `tests/infras/web/search/search.rs`
