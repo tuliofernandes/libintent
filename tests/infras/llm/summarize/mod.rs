@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use libintent::infras::llm::backend::LlmBackend;
-use libintent::infras::llm::summary::Summarize;
+use libintent::infras::llm::summarize::Summarize;
 use libintent::intent::Intent;
 use libintent::types::{ExecutionStatus, IntentInput};
 
