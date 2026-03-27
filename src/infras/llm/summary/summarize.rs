@@ -6,24 +6,24 @@ use crate::infras::llm::backend::LlmBackend;
 use crate::intent::Intent;
 use crate::types::{ExecutionStatus, IntentInput, IntentResult};
 
-pub struct Summary {
+pub struct Summarize {
     backend: Arc<dyn LlmBackend>,
     context: Option<String>,
 }
 
-impl Summary {
+impl Summarize {
     pub fn new(backend: Arc<dyn LlmBackend>, context: Option<String>) -> Self {
         Self { backend, context }
     }
 }
 
-impl Intent for Summary {
+impl Intent for Summarize {
     fn name(&self) -> &'static str {
-        "summary"
+        "summarize"
     }
 
     fn path(&self) -> &'static str {
-        "llm.summary"
+        "llm.summarize"
     }
 
     fn description(&self) -> &'static str {
@@ -37,7 +37,9 @@ impl Intent for Summary {
                 return IntentResult {
                     status: ExecutionStatus::Error,
                     result: None,
-                    error: Some("Missing input for llm.summary: provide text via data".to_string()),
+                    error: Some(
+                        "Missing input for llm.summarize: provide text via data".to_string(),
+                    ),
                 }
             }
         };
@@ -53,7 +55,7 @@ impl Intent for Summary {
             Err(e) => IntentResult {
                 status: ExecutionStatus::Error,
                 result: None,
-                error: Some(format!("Failed to execute llm.summary: {}", e)),
+                error: Some(format!("Failed to execute llm.summarize: {}", e)),
             },
         }
     }

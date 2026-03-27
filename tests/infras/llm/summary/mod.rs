@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use libintent::infras::llm::backend::LlmBackend;
-use libintent::infras::llm::summary::Summary;
+use libintent::infras::llm::summary::Summarize;
 use libintent::intent::Intent;
 use libintent::types::{ExecutionStatus, IntentInput};
 
@@ -38,7 +38,7 @@ impl LlmBackend for CapturingBackend {
 
 #[test]
 fn should_return_error_if_input_missing() {
-    let intent = Summary::new(Arc::new(MockOk), None);
+    let intent = Summarize::new(Arc::new(MockOk), None);
     let input = IntentInput { data: None, args: vec![] };
 
     let result = intent.execute(input);
@@ -52,7 +52,7 @@ fn should_return_error_if_input_missing() {
 
 #[test]
 fn should_return_ok_when_backend_succeeds() {
-    let intent = Summary::new(Arc::new(MockOk), None);
+    let intent = Summarize::new(Arc::new(MockOk), None);
     let input = IntentInput {
         data: Some("Some long text to summarize.".to_string()),
         args: vec![],
@@ -70,7 +70,7 @@ fn should_return_ok_when_backend_succeeds() {
 
 #[test]
 fn should_return_error_when_backend_fails() {
-    let intent = Summary::new(Arc::new(MockErr), None);
+    let intent = Summarize::new(Arc::new(MockErr), None);
     let input = IntentInput {
         data: Some("Some text.".to_string()),
         args: vec![],
@@ -89,7 +89,7 @@ fn should_return_error_when_backend_fails() {
 fn should_include_context_in_prompt_when_set() {
     let captured = Arc::new(Mutex::new(String::new()));
     let backend = CapturingBackend { captured: Arc::clone(&captured) };
-    let intent = Summary::new(
+    let intent = Summarize::new(
         Arc::new(backend),
         Some("You are a formal assistant.".to_string()),
     );

@@ -1,3 +1,3 @@
-mod summary;
+mod summarize;
 
-pub use summary::Summary;
+pub use summarize::Summarize;
