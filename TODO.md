@@ -9,6 +9,24 @@
 
 - some initial formats (json, plain, source, etc.)
 
+## Packaging libintent docs (octopus repo)
+
+To ship libintent man pages as part of the octopus package:
+
+- [ ] In the octopus build/packaging step, locate libintent's `man/man1/` directory
+      (available on disk after `cargo fetch` since it is part of the crate source tree).
+- [ ] Run `scdoc` on each `.scd` file to produce the compiled `.1` roff files:
+      `scdoc < web.search.1.scd > web.search.1`
+- [ ] Install the compiled `.1` files alongside octopus's own man pages under
+      `/usr/share/man/man1/` (or `$(DESTDIR)/usr/share/man/man1/` for staged installs).
+- [ ] Add `scdoc` as a build-time dependency in the octopus package spec
+      (`.deb` `Build-Depends`, `.spec` `BuildRequires`, or equivalent).
+- [ ] Optionally gzip the `.1` files (`gzip -9`) — most distro packaging tools do
+      this automatically; check whether `cargo-deb` / `cargo-generate-rpm` handle it.
+
+Note: each new intent added to libintent must include its own `.scd` file in
+`man/man1/`; the octopus packaging step picks them all up automatically with a glob.
+
 ## Tech Debt
 
 - [ ] Lock down infra visibility — make `pub(crate) mod infras` in `lib.rs` so `List`, `Search`,
