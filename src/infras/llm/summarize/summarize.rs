@@ -67,7 +67,9 @@ fn build_prompt(context: Option<&str>, text: &str) -> String {
         prompt.push_str(ctx);
         prompt.push_str("\n\n");
     }
-    prompt.push_str("Summarize the following text concisely.\n\n");
+    prompt.push_str("Summarize the answer for the user input concisely in 1-3 sentences.
+Do not add extra context or speculation.
+Be direct and factual.\n\n");
     prompt.push_str(text);
     prompt
 }
